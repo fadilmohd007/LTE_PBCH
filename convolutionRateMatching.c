@@ -1,8 +1,9 @@
-//gcc -g -lm convolutionRateMatching.c
+//gcc -g -cc -lm convolutionRateMatching.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+# include "convolutionRateMatching.h"
 
 
 
@@ -28,7 +29,9 @@ int is_present(int search, int length ) {
 	return -1;
 }
 
-uint8_t convolutionRateMatcher(uint8_t* rateMatchInput, int nBytes, uint8_t* rateMatchOutput) {
+uint8_t* convolutionRateMatcher(uint8_t* rateMatchInput, int nBytes, uint8_t* rateMatchOutput) {
+	printf("=============================Convolution Rate Matching=================================\n");
+
 	int j, i, k, index, E = 1920, Kw; // E value is 1920 for normal cyclic/ 1728 for extended from 36.211 6.6 scrambling bit length
 	int n_coloumns = 4 , v = 0; //32/8bits = 4bytes
 
@@ -59,6 +62,11 @@ uint8_t convolutionRateMatcher(uint8_t* rateMatchInput, int nBytes, uint8_t* rat
 	uint8_t interlever_matrix_1_permuted_out [n_rows * n_coloumns];
 	uint8_t interlever_matrix_2_permuted_out [n_rows * n_coloumns];
 	uint8_t interlever_matrix_permuted_final_out_w [3 * n_rows * n_coloumns];
+	rateMatchOutput =  ( uint8_t*) realloc(rateMatchOutput, (1920 / 8 ) * (sizeof(uint8_t)));
+
+	for (i = 0; i < E / 8; i++) {
+		rateMatchOutput[i] = 0;
+	}
 	for (i = 0; i < n_rows; ++i)
 	{
 		for ( j = 0; j < n_coloumns; ++j)
@@ -100,13 +108,11 @@ uint8_t convolutionRateMatcher(uint8_t* rateMatchInput, int nBytes, uint8_t* rat
 			if ( i == 0 && index >= 0) {
 				tracker[index] = j;
 			}
-
-			interlever_matrix_0_permuted[i][j / 8] = interlever_matrix_0_permuted[i][j / 8] | ( (getbit( interlever_matrix_0[i][temp_coulumn / 8],  (temp_coulumn % 8)) << (j % 8) ));
-			interlever_matrix_1_permuted[i][j / 8] = interlever_matrix_1_permuted[i][j / 8] | ( (getbit( interlever_matrix_1[i][temp_coulumn / 8],  (temp_coulumn % 8)) << (j % 8) ));
-			interlever_matrix_2_permuted[i][j / 8] = interlever_matrix_2_permuted[i][j / 8] | ( (getbit( interlever_matrix_2[i][temp_coulumn / 8],  (temp_coulumn % 8)) << (j % 8) ));
+			interlever_matrix_0_permuted[i][j / 8] = interlever_matrix_0_permuted[i][j / 8] | ( (getbit( interlever_matrix_0[i][temp_coulumn / 8], 7- (temp_coulumn % 8)) << (7-(j % 8)) ));
+			interlever_matrix_1_permuted[i][j / 8] = interlever_matrix_1_permuted[i][j / 8] | ( (getbit( interlever_matrix_1[i][temp_coulumn / 8], 7- (temp_coulumn % 8)) << (7-(j % 8)) ));
+			interlever_matrix_2_permuted[i][j / 8] = interlever_matrix_2_permuted[i][j / 8] | ( (getbit( interlever_matrix_2[i][temp_coulumn / 8], 7- (temp_coulumn % 8)) << (7-(j % 8)) ));
 		}
 	}
-
 	for (i = 0; i < n_trackerbits; ++i)
 	{
 		tracker_initial[i] = tracker[i];
@@ -130,9 +136,9 @@ uint8_t convolutionRateMatcher(uint8_t* rateMatchInput, int nBytes, uint8_t* rat
 			if ( j == 0 && index >= 0) {
 				tracker[index] = v;
 			}
-			interlever_matrix_0_permuted_out[ v / 8] = interlever_matrix_0_permuted_out [ v / 8] | ((getbit(interlever_matrix_0_permuted[j][ i / 8] , (i % 8) )) << (v % 8));
-			interlever_matrix_1_permuted_out[ v / 8] = interlever_matrix_1_permuted_out [ v / 8] | ((getbit(interlever_matrix_1_permuted[j][ i / 8] , (i % 8) )) << (v % 8));
-			interlever_matrix_2_permuted_out[ v / 8] = interlever_matrix_2_permuted_out [ v / 8] | ((getbit(interlever_matrix_2_permuted[j][ i / 8] , (i % 8) )) << (v % 8));
+			interlever_matrix_0_permuted_out[ v / 8] = interlever_matrix_0_permuted_out [ v / 8] | ((getbit(interlever_matrix_0_permuted[j][ i / 8] , (7-(i % 8)) )) << (7-(v % 8)));
+			interlever_matrix_1_permuted_out[ v / 8] = interlever_matrix_1_permuted_out [ v / 8] | ((getbit(interlever_matrix_1_permuted[j][ i / 8] , (7-(i % 8)) )) << (7-(v % 8)));
+			interlever_matrix_2_permuted_out[ v / 8] = interlever_matrix_2_permuted_out [ v / 8] | ((getbit(interlever_matrix_2_permuted[j][ i / 8] , (7-(i % 8)) )) << (7-(v % 8)));
 		}
 	}
 
@@ -159,40 +165,40 @@ uint8_t convolutionRateMatcher(uint8_t* rateMatchInput, int nBytes, uint8_t* rat
 	int t = 0;
 	while (k < E) {
 		j = j % (n_rows * n_coloumns * 8 * 3);
-
 		index = is_present((j % (8 * n_coloumns * n_rows)) , n_trackerbits);
-
-
-
 		if ( !(index >= 0) ) {
-			printf("%x", getbit(interlever_matrix_permuted_final_out_w[(j % (8 * n_coloumns * n_rows * 3)) / 8], (j % 8) ));
+			//for printing bits enable this
+			//printf("%x", getbit(interlever_matrix_permuted_final_out_w[(j % (8 * n_coloumns * n_rows * 3)) / 8], (j % 8) ));
+			rateMatchOutput[k / 8] = rateMatchOutput[k / 8] | (getbit(interlever_matrix_permuted_final_out_w[(j % (8 * n_coloumns * n_rows * 3)) / 8], (7-(j % 8)) ) << 7-(k % 8));
 			k++;
+
 		}
-
-
 		j++;
+	}
 
+	for ( i = 0 ; i < E / 8 ; i++) {
+		printf("%x ", rateMatchOutput[i] );
 	}
 
 
+	printf("\n=============================Convolution Rate Matching=================================\n");
+
+	return rateMatchOutput;
 
 }
 
 
 
 
-//tester
-int main() {
-	uint8_t message[3][7] = {0xa6, 0x3b, 0x86, 0x24, 0x3b, 0xd8, 0x58,//10100110 00111011 10000110 00100100 00111011 11011000 01011000
-	                         //{	0x65, 0xdc, 0x61, 0x24, 0xdc, 0x1b, 0x1a, //for dinesh  01100101 11011100 01100001 00100100 11011100 00011011 00011010
-	                         0x3f, 0xf4, 0xe9, 0xc2, 0xc9, 0x41, 0x75,//
-	                         //  {0xFC, 0x2F, 0x97, 0x43, 0x93, 0x82, 0xAe,for dinesh  11111100 00101111 10010111 01000011 10010011 10000010 10101110
-	                         0xa3, 0x76, 0xfe, 0xb0, 0x8f, 0xdd, 0xd1
-	                         //  {0xC5, 0x6E, 0x7F, 0x0D, 0xF1, 0xBB, 0x8B,for dinesh  11000101 01101110 01111111 00001101 11110001 10111011 10001011
-	                        };
-	uint8_t* rateMatchOutput;
-	convolutionRateMatcher((uint8_t *)message, 7, rateMatchOutput);
-
-
-
-}
+// //tester
+// int main() {
+// 	uint8_t message[3*7] = {0xa6, 0x3b, 0x86, 0x24, 0x3b, 0xd8, 0x58, //10100110 00111011 10000110 00100100 00111011 11011000 01011000
+// 	                          //{	0x65, 0xdc, 0x61, 0x24, 0xdc, 0x1b, 0x1a, //for dinesh  01100101 11011100 01100001 00100100 11011100 00011011 00011010
+// 	                          0x3f, 0xf4, 0xe9, 0xc2, 0xc9, 0x41, 0x75,//
+// 	                          //0xFC, 0x2F, 0x97, 0x43, 0x93, 0x82, 0xAe, //for dinesh  11111100 00101111 10010111 01000011 10010011 10000010 10101110
+// 	                          0xa3, 0x76, 0xfe, 0xb0, 0x8f, 0xdd, 0xd1
+// 	                          //0xC5, 0x6E, 0x7F, 0x0D, 0xF1, 0xBB, 0x8B,//for dinesh  11000101 01101110 01111111 00001101 11110001 10111011 10001011
+// 	                         };
+// 	uint8_t* rateMatchOutput;
+// 	convolutionRateMatcher( (uint8_t *)message, 7, rateMatchOutput);
+// }
