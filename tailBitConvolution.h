@@ -1,0 +1,1 @@
+uint8_t* tailBitEncoder(uint8_t* encod_input , int nBytes, uint8_t* encoded_output );
