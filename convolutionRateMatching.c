@@ -169,14 +169,14 @@ uint8_t* convolutionRateMatcher(uint8_t* rateMatchInput, int nBytes, uint8_t* ra
 		if ( !(index >= 0) ) {
 			//for printing bits enable this
 			//printf("%x", getbit(interlever_matrix_permuted_final_out_w[(j % (8 * n_coloumns * n_rows * 3)) / 8], (j % 8) ));
-			rateMatchOutput[k / 8] = rateMatchOutput[k / 8] | (getbit(interlever_matrix_permuted_final_out_w[(j % (8 * n_coloumns * n_rows * 3)) / 8], (7-(j % 8)) ) << 7-(k % 8));
+			rateMatchOutput[k / 8] = rateMatchOutput[k / 8] | (getbit(interlever_matrix_permuted_final_out_w[(j % (8 * n_coloumns * n_rows * 3)) / 8], (7-(j % 8)) ) << (k % 8));
 			k++;
 
 		}
 		j++;
 	}
 
-	for ( i = 0 ; i < E / 8 ; i++) {
+	for ( i = 0 ; i < E/8  ; i++) {
 		printf("%x ", rateMatchOutput[i] );
 	}
 

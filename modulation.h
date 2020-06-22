@@ -1,0 +1,1 @@
+float complex * modulator(uint8_t * input,int modulationScheme, int nBytes, float complex* output);
