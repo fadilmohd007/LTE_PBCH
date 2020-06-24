@@ -1,14 +1,16 @@
-//gcc -lm -o pbch pbch.c crc.o convolutionRateMatching.o tailBitConvolution.o scrambling.o
+//gcc -lm -lgsl -lgslcblas -o pbch pbch.c crc.o convolutionRateMatching.o tailBitConvolution.o scrambling.o modulation.o layermapping.o precoding.o
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include<complex.h>
+#include <complex.h>
 #include "crc.h"
 #include "tailBitConvolution.h"
 #include "convolutionRateMatching.h"
 #include "scrambling.h"
 #include "modulation.h"
 #include "layermapping.h"
+#include "precoding.h"
+
 
 
 #define getbit(byte,nbit)   ((int) (byte >> nbit ) & 1)
@@ -19,11 +21,15 @@ int main() {
 	uint8_t message[7];
 	uint8_t *output, *input;
 	int i = 0, E = 1920;
-	int print = 1;
+	int print = 0;
 	int nCellId = 404;
 	int modulation_scheme = 0;
 	float complex *cmplx_output, *cmplx_input;
 	int n_complex_array_length;
+	int n_layers = 2;
+	int n_codewords = 1;
+	int transmission_scheme = 1;
+	gsl_matrix_complex* gsl_matrix_cmplx_output, gsl_cmplx_input;
 
 	message[0] = 0xB8;
 	message[1] = 0x1F;
@@ -125,7 +131,7 @@ int main() {
 	// //Modulation OUT PRINT
 	if (print == 1) {
 		printf("modulation output from pbch start\n");
-		for (i = 0; i < nBytes * 8 / 2; ++i)
+		for (i = 0; i < n_complex_array_length; ++i)
 		{
 			printf( "%.5f%+.5fi ",
 			        creal(cmplx_output[i]), cimag(cmplx_output[i]));
@@ -135,14 +141,37 @@ int main() {
 
 
 	//Layermapping
-	cmplx_input = (float complex*) malloc(n_complex_array_length*sizeof(float complex*));
+	cmplx_input = (float complex*) malloc(n_complex_array_length * sizeof(float complex*));
 	for (i = 0; i < n_complex_array_length ; i++) {
 		cmplx_input[i] = cmplx_output[i];
 	}
-	layerMapper(cmplx_input,2,4,1,n_complex_array_length,cmplx_output);
+	cmplx_output =  layerMapper(cmplx_input, transmission_scheme, n_layers, n_codewords, n_complex_array_length, cmplx_output);
+	//LayerMapping OUT PRINT
+	if (print == 1) {
+		int k = n_complex_array_length / n_layers, j;
+		printf("layermapping output from pbch start\n");
+		for (i = 0 ; i < k; i++) {
+			for (j = 0 ; j < n_layers ; j++) {
+				printf( "%.5f%+ .5fi ", creal(cmplx_output[i + (j * k)]), cimag(cmplx_output[i + (j * k)]));
+			}
+			printf("\n");
+		}
+		printf("\nlayermapping output from pbch end\n");
+	}
 
 
+	//precoding
+	for (i = 0; i < n_complex_array_length ; i++) {
+		cmplx_input[i] = cmplx_output[i];
+	}
+	int is_CDD =0;
+	int n_antennaports =2;
+	int code_bookindex =0;
+	gsl_matrix_cmplx_output = precoder( cmplx_input,transmission_scheme,is_CDD,n_antennaports, n_layers,code_bookindex , n_complex_array_length,  gsl_matrix_cmplx_output);
 
+
+	free(cmplx_output);
+	free(cmplx_input);
 	free(input);
 	free(output);
 }
