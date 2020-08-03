@@ -1,3 +1,4 @@
+//gcc -c precoding.c
 #include "precoding.h"
 //globals
 gsl_matrix_complex* codebook_two_antenna_ports;
@@ -102,8 +103,6 @@ void initialtecodebook() {
 	gsl_matrix_complex_set(codebook_two_antenna_ports, 4, 2, val[0]);
 	GSL_SET_COMPLEX(&val[0], 0, -.5) ;
 	gsl_matrix_complex_set(codebook_two_antenna_ports, 5, 2, val[0]);
-	float x =1/2;
-	printf("%f\n",x );
 	// printf("%.5f%+ .5fi ", GSL_REAL( gsl_matrix_complex_get(codebook_two_antenna_ports, 2, 1)), GSL_IMAG( gsl_matrix_complex_get(codebook_two_antenna_ports, 2, 1)) );
 	// printf("%.5f%+ .5fi ", GSL_REAL( gsl_matrix_complex_get(codebook_two_antenna_ports, 2, 2)), GSL_IMAG( gsl_matrix_complex_get(codebook_two_antenna_ports, 2, 2)) );
 	// printf("%.5f%+ .5fi ", GSL_REAL( gsl_matrix_complex_get(codebook_two_antenna_ports, 3, 1)), GSL_IMAG( gsl_matrix_complex_get(codebook_two_antenna_ports, 3, 1)) );
@@ -181,14 +180,6 @@ gsl_matrix_complex* precoder(float complex* input, int tr_scheme, int is_CDD, in
 					return;
 				}
 				gsl_matrix_complex_view W = gsl_matrix_complex_submatrix(codebook_two_antenna_ports, 2 * codebook_index, n_layers - 1, 2, n_layers);
-				for (i = 0 ; i < 2 ; i++) {
-					j = 0;
-					while (j < 2) {
-						printf("%.5f%+ .5fi ", GSL_REAL(gsl_matrix_complex_get(&W.matrix, j, i)), GSL_IMAG(gsl_matrix_complex_get(&W.matrix, j, i)) );
-						j++;
-					}
-					printf("HROO\n");
-				}
 				gsl_complex alpha, beta;
 				GSL_SET_COMPLEX(&alpha, 1, 0);
 				GSL_SET_COMPLEX(&beta, 0, 0);
@@ -219,11 +210,16 @@ gsl_matrix_complex* precoder(float complex* input, int tr_scheme, int is_CDD, in
 					printf("\n");
 				}
 				return output;
-
 			}
-
-
 		}
+		else if(is_CDD == 1){
+			printf("precoding for spatial multiplexing with cell specific ref signal with CDD is not implemented exiting\n");
+			return;
+		}
+	}
+	else{
+		printf("precoding for only spatial multiplexing is  implemented, exiting\n");
+			return;
 	}
 	printf("\n=============================Precoding=================================\n");
 

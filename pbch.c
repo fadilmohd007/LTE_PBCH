@@ -1,4 +1,5 @@
 //gcc -lm -lgsl -lgslcblas -o pbch pbch.c crc.o convolutionRateMatching.o tailBitConvolution.o scrambling.o modulation.o layermapping.o precoding.o
+//export LD_LIBRARY_PATH=/usr/local/lib
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -166,8 +167,9 @@ int main() {
 	}
 	int is_CDD =0;
 	int n_antennaports =2;
-	int code_bookindex =2;
+	int code_bookindex =0;
 	gsl_matrix_cmplx_output = precoder( cmplx_input,transmission_scheme,is_CDD,n_antennaports, n_layers,code_bookindex , n_complex_array_length,  gsl_matrix_cmplx_output);
+	
 
 
 	free(cmplx_output);
