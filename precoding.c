@@ -1,4 +1,4 @@
-//gcc -c precoding.c
+//gcc -c  -I//usr/local/include/ precoding.c
 #include "precoding.h"
 //globals
 gsl_matrix_complex* codebook_two_antenna_ports;
@@ -154,7 +154,7 @@ gsl_matrix_complex* precoder(float complex* input, int tr_scheme, int is_CDD, in
 
 	if (tr_scheme == 0) {
 		printf("precoding for single antenna port \n");
-		if (n_antenna_port == 1 ) {
+		if (n_antenna_port != 1 ) {
 			printf("invalid antenna port for single antenna transmission\n");
 			return;
 		}

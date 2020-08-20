@@ -1,45 +1,24 @@
 //gcc -lm -lgsl -lgslcblas -o pbch pbch.c crc.o convolutionRateMatching.o tailBitConvolution.o scrambling.o modulation.o layermapping.o precoding.o
 //export LD_LIBRARY_PATH=/usr/local/lib
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <complex.h>
-#include "crc.h"
-#include "tailBitConvolution.h"
-#include "convolutionRateMatching.h"
-#include "scrambling.h"
-#include "modulation.h"
-#include "layermapping.h"
-#include "precoding.h"
+#include "pbch.h"
 
-
-
-#define getbit(byte,nbit)   ((int) (byte >> nbit ) & 1)
-
-int main() {
-
-	int nBytes = 4;
-	uint8_t message[7];
-	uint8_t *output, *input;
-	int i = 0, E = 1920;
+int pbch_main(	int nBytes, uint8_t message[], int nCellId, int n_layers , int n_codewords, int modulation_scheme,
+                int transmission_scheme, int is_CDD , int n_antennaports, int code_bookindex, gsl_complex* lte_frame,
+                int n_RB, int CP) {
+	//config
 	int print = 0;
-	int nCellId = 404;
-	int modulation_scheme = 0;
+
+	//local and iterrators
+	uint8_t *output, *input;
+	int i = 0;
+
+
+
 	float complex *cmplx_output, *cmplx_input;
 	int n_complex_array_length;
-	int n_layers = 2;
-	int n_codewords = 1;
-	int transmission_scheme = 1;
+
 	gsl_matrix_complex* gsl_matrix_cmplx_output, gsl_cmplx_input;
 
-	message[0] = 0xB8;
-	message[1] = 0x1F;
-	message[2] = 0x2D;
-	message[3] = 0x1C;
-	//crc
-	//message[4] = 0x27;
-	// message[5] = 0x46;
-	// message[6] = 0x38;
 
 	// TRB block Pring
 	if (print == 1) {
@@ -165,11 +144,9 @@ int main() {
 	for (i = 0; i < n_complex_array_length ; i++) {
 		cmplx_input[i] = cmplx_output[i];
 	}
-	int is_CDD =0;
-	int n_antennaports =2;
-	int code_bookindex =0;
-	gsl_matrix_cmplx_output = precoder( cmplx_input,transmission_scheme,is_CDD,n_antennaports, n_layers,code_bookindex , n_complex_array_length,  gsl_matrix_cmplx_output);
-	
+	gsl_matrix_cmplx_output = precoder( cmplx_input, transmission_scheme, is_CDD, n_antennaports, n_layers, code_bookindex , n_complex_array_length,  gsl_matrix_cmplx_output);
+	int j;
+	RE_mapping_pbch( gsl_matrix_cmplx_output,  lte_frame,  CP, n_RB, n_antennaports);
 
 
 	free(cmplx_output);

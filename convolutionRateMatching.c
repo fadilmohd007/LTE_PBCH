@@ -1,4 +1,4 @@
-//gcc -g -cc -lm convolutionRateMatching.c
+//gcc -g -c -lm convolutionRateMatching.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
