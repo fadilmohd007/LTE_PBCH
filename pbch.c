@@ -2,11 +2,11 @@
 //export LD_LIBRARY_PATH=/usr/local/lib
 #include "pbch.h"
 
-int pbch_main(	int nBytes, uint8_t message[], int nCellId, int n_layers , int n_codewords, int modulation_scheme,
-                int transmission_scheme, int is_CDD , int n_antennaports, int code_bookindex, gsl_complex* lte_frame,
-                int n_RB, int CP) {
+gsl_complex* pbch_main(	int nBytes, uint8_t message[], int nCellId, int n_layers , int n_codewords, int modulation_scheme,
+                        int transmission_scheme, int is_CDD , int n_antennaports, int code_bookindex, gsl_complex* lte_frame,
+                        int n_RB, int CP) {
 	//config
-	int print = 0;
+	int print = 1;
 
 	//local and iterrators
 	uint8_t *output, *input;
@@ -31,8 +31,8 @@ int pbch_main(	int nBytes, uint8_t message[], int nCellId, int n_layers , int n_
 	}
 
 	//CRC
-	output = crcSlow(message, nBytes, 1, output);
-	nBytes = nBytes + 3;
+	output = crcSlow(message, nBytes, 3, output);
+	nBytes = nBytes + 2;
 	// CRC OUT PRINT
 	if (print == 1) {
 		printf("crc output from pbch start\n");
@@ -146,11 +146,12 @@ int pbch_main(	int nBytes, uint8_t message[], int nCellId, int n_layers , int n_
 	}
 	gsl_matrix_cmplx_output = precoder( cmplx_input, transmission_scheme, is_CDD, n_antennaports, n_layers, code_bookindex , n_complex_array_length,  gsl_matrix_cmplx_output);
 	int j;
-	RE_mapping_pbch( gsl_matrix_cmplx_output,  lte_frame,  CP, n_RB, n_antennaports);
+	RE_mapping_pbch( gsl_matrix_cmplx_output,  lte_frame,  CP, n_RB, n_antennaports, nCellId);
 
 
 	free(cmplx_output);
 	free(cmplx_input);
 	free(input);
 	free(output);
+	return  lte_frame;
 }

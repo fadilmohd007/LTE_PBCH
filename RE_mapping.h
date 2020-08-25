@@ -14,4 +14,4 @@
 
 #define is_gsl_complex_zero(gsl_cmplx_num) (( GSL_REAL(gsl_cmplx_num) * 1  == 0 && GSL_IMAG(gsl_cmplx_num)*1== 0)?1:0)
 
-int RE_mapping_pbch(gsl_matrix_complex* gsl_matrix_cmplx_output, gsl_complex* lte_frame, int CP, int n_RB,  int n_antenna_port);
+int RE_mapping_pbch(gsl_matrix_complex* gsl_matrix_cmplx_output, gsl_complex* lte_frame, int CP, int n_RB,  int n_antenna_port, int nCellId);
